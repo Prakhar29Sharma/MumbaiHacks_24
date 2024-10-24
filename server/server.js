@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
@@ -8,6 +7,10 @@ const mongoose = require('mongoose');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const multerS3 = require('multer-s3');
 const AuthRoute = require('./routes/auth');
+const session = require('express-session');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const passport = require('passport');
+const User = require('./models/User');
 
 /* Config */
 const app = express();
@@ -15,6 +18,70 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use('/assets', express.static('public/assets'));
+
+// Session middleware configuration
+app.use(session({
+secret: process.env.JWT_SECRET, // Use a strong secret
+resave: false,
+saveUninitialized: true,
+cookie: { secure: false } // Set to true in production with HTTPS
+}));
+
+// Passport.js middleware setup
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Serialize user into session
+passport.serializeUser((user, done) => {
+done(null, user.id);
+});
+
+// Deserialize user from session
+passport.deserializeUser((id, done) => {
+User.findById(id, (err, user) => {
+    done(err, user);
+});
+});
+
+/* Google OAuth Config */
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://localhost:5000/auth/google/callback"
+  },
+  async function(accessToken, refreshToken, profile, cb) {
+    try {
+      // Check if the user already exists
+      const existingUser = await User.findOne({ email: profile.emails[0].value });
+
+      if (existingUser) {
+        // If the user exists, return the existing user
+        return cb(null, existingUser);
+      } else {
+        // If the user doesn't exist, create a new one
+        const name = profile.displayName.split(" ");
+        
+        const newUser = new User({
+          firstName: name[0],
+          lastName: name[1],
+          email: profile.emails[0].value,
+          role: 'student',
+          password: uuidv4(), // random string as password
+          isActive: true,
+        });
+
+        // Save the new user to the database
+        const savedUser = await newUser.save();
+
+        return cb(null, savedUser);
+      }
+    } catch (err) {
+      console.error("Error during user authentication:", err);
+      return cb(err);
+    }
+  }
+));
+
 
 /* File Storage */
 const s3 = new S3Client({
@@ -83,6 +150,20 @@ app.post('/api/course', fileUploadMiddleware, async (req, res) => {
 /* upload profile image route for contributor */
 /* upload profile image route for evaluator */
 /* upload course thumbnail image route for contributor */
+
+/* Google Sign In Route */
+
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+  
+app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/auth/google/failure' }), function(req, res) {
+    // Successful authentication, redirect to student dashboard.
+    res.redirect(`http://localhost:3000/student`);
+});
+
+app.get('/auth/google/failure', (req, res) => {
+    // Redirect to the React login page
+    res.redirect('http://localhost:3000/login');
+});
 
 /* API ROUTES */
 app.use('/api/auth', AuthRoute);
