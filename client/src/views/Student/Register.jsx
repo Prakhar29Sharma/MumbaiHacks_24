@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -55,8 +56,25 @@ export default function Register() {
             console.log("Registration data: ", data);
             
             // Make a post request to server
-            
-            // Handle the response
+
+            axios({
+                method: 'post',
+                url: 'http://localhost:5000/api/auth/student/register',
+                data: data,
+                headers: { 'Content-Type': 'application/json' },
+            })
+            .then((response) => {
+                if (response.status === 200) {
+                    alert(response.data.message);
+                    window.location.href = '/login';
+                } else {
+                    console.log(response.data.error);
+                    alert(response.data.error);
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            })
             
         }
     }

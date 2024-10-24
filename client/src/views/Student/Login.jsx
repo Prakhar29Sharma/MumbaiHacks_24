@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { setToken } from '../../utils/auth';
 
 export default function Login() {
 
@@ -45,20 +47,42 @@ export default function Login() {
             
             // Data
 
-            const data = { email, password, rememberMe };
+            const data = { email, password, rememberMe, role: 'student'};
 
-            console.log("Login data : " + data);
+            axios({
+                method: 'post',
+                url: 'http://localhost:5000/api/auth/login',
+                data: data,
+                headers: {'Content-Type': 'application/json'},
+            })
+            .then((response) => {
+                if (response.data.error) {
+                    console.log(response.data.error);
+                    setMessage(response.data.error);
+                }
+                else {
+                    if (response.status === 200) {
 
-            // make a post request to server
+                        setToken(response.data.jwt_token);
+                        
+                        localStorage.setItem('user', JSON.stringify(response.data.user));
 
-            // parse response and set token in local storage
+                        const expiration = new Date();
 
-            // set expiration
+                        expiration.setHours(expiration.getHours() + response.data.expiration);
 
-            // based on the user role redirect him to respective dashboard
+                        localStorage.setItem('expiration', expiration.toISOString());
 
-            // at error provide suitable error message
-            
+                        // redirect to student dashboard
+
+                        window.location.href = '/student';
+                    }
+                }
+            })
+            .catch((err) => {
+                console.log(err);
+                setMessage(err);
+            })
         }
 
     }
@@ -124,7 +148,10 @@ export default function Login() {
                         </button>
                         </div>
 
+                        <p style={{ textAlign: 'left', fontSize: '15px', fontWeight: 'bold', color: 'red', marginTop: '10px' }} className="message">{message}</p>
+
                         <div className="space-x-6 flex justify-center mt-8">
+
                         <button type="button"
                             className="border-none outline-none">
                             <svg xmlns="http://www.w3.org/2000/svg" width="32px" viewBox="0 0 512 512">
@@ -145,7 +172,6 @@ export default function Login() {
                                 <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.416-4.042-1.416-.546-1.387-1.333-1.757-1.333-1.757-1.09-.744.083-.729.083-.729 1.205.085 1.84 1.24 1.84 1.24 1.07 1.835 2.807 1.304 3.492.997.108-.775.418-1.305.76-1.605-2.665-.3-5.466-1.334-5.466-5.93 0-1.31.467-2.38 1.235-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.48 11.48 0 0 1 3.003-.404c1.02.005 2.045.137 3.003.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.235 1.91 1.235 3.22 0 4.61-2.803 5.625-5.475 5.92.43.37.814 1.102.814 2.222 0 1.606-.014 2.9-.014 3.292 0 .322.217.694.825.576C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
                             </svg>
                         </button>
-
 
                         </div>
                     </form>

@@ -4,8 +4,10 @@ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
 const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
 const multerS3 = require('multer-s3');
+const AuthRoute = require('./routes/auth');
 
 /* Config */
 const app = express();
@@ -83,8 +85,19 @@ app.post('/api/course', fileUploadMiddleware, async (req, res) => {
 /* upload course thumbnail image route for contributor */
 
 /* API ROUTES */
+app.use('/api/auth', AuthRoute);
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-}); 
+
+mongoose.connect(process.env.ATLAS_URI, {
+    useNewUrlParser: true, 
+    useUnifiedTopology: true,
+})
+.then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    }); 
+})
+.catch((err) => {
+    console.error(`Error: ${err}`);
+})
