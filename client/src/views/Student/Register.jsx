@@ -8,7 +8,9 @@ export default function Register() {
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    // eslint-disable-next-line
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [message, setMessage] = useState('');
 
     function validateEmail(element) {
         if (element.validity.typeMismatch) {
@@ -69,7 +71,7 @@ export default function Register() {
                     window.location.href = '/login';
                 } else {
                     console.log(response.data.error);
-                    alert(response.data.error);
+                    setMessage('An error has occurred!');
                 }
             })
             .catch((error) => {
@@ -124,6 +126,8 @@ export default function Register() {
                                     Sign Up
                                 </button>
                             </div>
+
+                            <p style={{ textAlign: 'left', fontSize: '15px', fontWeight: 'bold', color: 'red', marginTop: '10px' }} className="message">{message}</p>
 
                             <div className="space-x-6 flex justify-center mt-8">
                             <button type="button"

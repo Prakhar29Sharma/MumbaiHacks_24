@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 export default function Hero() {
     return (
         <>
-            <div className="bg-gradient-to-b from-purple-900 via-blue-800 to-purple-500 px-6 sm:py-20 py-10 font-[sans-serif] mt-10">
+            <div className="bg-gradient-to-b from-purple-700 via-blue-700 to-pink-200 px-6 sm:py-20 py-10 font-[sans-serif] mt-10">
                 <div className="max-w-screen-xl mx-auto text-center text-white">
                     <h1 className="text-5xl max-sm:text-3xl font-extrabold leading-tight mb-6">Welcome to Edulib</h1>
                     <p className="text-lg mb-12">Empower Your Learning Journey

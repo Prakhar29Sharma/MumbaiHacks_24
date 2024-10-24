@@ -58,7 +58,7 @@ export default function Login() {
             .then((response) => {
                 if (response.data.error) {
                     console.log(response.data.error);
-                    setMessage(response.data.error);
+                    setMessage('An error has occured');
                 }
                 else {
                     if (response.status === 200) {

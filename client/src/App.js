@@ -22,7 +22,19 @@ function App() {
         { path: 'register', element: <Register /> },
       ],
     },
-    {}
+    // {
+    //   path: '/student',
+    //   id: 'student',
+    //   loader: studentLoader,
+    //   element: <StudentRootLayout />,
+    //   children: [
+    //     { path: '', element: <Student /> },
+    //     { path: 'course/:courseId', element: <ViewStudentCourse /> },
+    //     { path: 'create_profile', element: <CreateStudentProfile />, action: CreateStudentProfileAction },
+    //     { path: 'profile', element: <StudentProfile />},
+    //     { path: 'all_courses', element: <ViewAllCourses /> }
+    //   ]
+    // },
   ]);
 
   return <RouterProvider router={router} />
