@@ -133,3 +133,5 @@ dist
 *.rest
 
 server/public/assets
+
+firebase-config.js
