@@ -281,7 +281,8 @@ app.post('/api/course', async (req, res) => {
     await course.save();
     res.status(200).json({
       status: 'ok',
-      message: 'Course created successfully'
+      message: 'Course created successfully',
+      courseId: course.id,
     });
   } catch (err) {
     res.status(500).json({
