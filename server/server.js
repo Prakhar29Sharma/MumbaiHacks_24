@@ -171,7 +171,7 @@ passport.use(new GitHubStrategy({
           email,
           role: 'student',
           githubId: profile.id,
-          isActive : true
+          isActive :true
 
         });
 
