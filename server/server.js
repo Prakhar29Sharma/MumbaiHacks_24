@@ -9,6 +9,7 @@ const multerS3 = require('multer-s3');
 const AuthRoute = require('./routes/auth');
 const session = require('express-session');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const GitHubStrategy = require('passport-github2').Strategy;
 const passport = require('passport');
 const User = require('./models/User');
 
@@ -78,6 +79,45 @@ passport.use(new GoogleStrategy({
     } catch (err) {
       console.error("Error during user authentication:", err);
       return cb(err);
+    }
+  }
+));
+
+/* Github OAuth Config */
+
+// GitHub Strategy setup
+passport.use(new GitHubStrategy({
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    callbackURL: "http://localhost:5000/auth/github/callback"
+  },
+  async function(accessToken, refreshToken, profile, done) {
+    try {
+      // Check if the user already exists in the database
+      const existingUser = await User.findOne({ email: profile.emails[0].value });
+
+      if (existingUser) {
+        // If the user already exists, pass the existing user to the callback
+        return done(null, existingUser);
+      } else {
+        // If the user doesn't exist, create a new user
+        const name = profile.displayName.split(" "); // Assuming the full name is returned
+
+        const newUser = new User({
+          firstName: name[0] || '',  // Use empty string if firstName is undefined
+          lastName: name[1] || '',   // Use empty string if lastName is undefined
+          email: profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null,
+          role: 'student',            // Assigning role as student
+          githubId: profile.id        // Store the GitHub ID
+        });
+
+        // Save the new user to the database
+        const savedUser = await newUser.save();
+        return done(null, savedUser);
+      }
+    } catch (err) {
+      console.error('Error during GitHub authentication:', err);
+      return done(err);
     }
   }
 ));
@@ -164,6 +204,17 @@ app.get('/auth/google/failure', (req, res) => {
     // Redirect to the React login page
     res.redirect('http://localhost:3000/login');
 });
+
+/* Routes for GitHub authentication */
+app.get('/auth/github',
+    passport.authenticate('github', { scope: ['user:email'] }));
+  
+  app.get('/auth/github/callback', 
+    passport.authenticate('github', { failureRedirect: '/login' }),
+    (req, res) => {
+      // Successful authentication, redirect to the student route
+      res.redirect('/student'); // Redirect to the desired route after login
+    });
 
 /* API ROUTES */
 app.use('/api/auth', AuthRoute);
