@@ -50,6 +50,18 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    githubId: {
+        type: String,
+        required: false,
+    },
+    googleId: {
+        type: String,
+        required: false,
+    },
+    profilePicture: {
+        type: String,
+        required: false,
+    }
 }, { timestamps: true });
 
 const User = mongoose.model("User", userSchema);

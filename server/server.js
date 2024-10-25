@@ -79,6 +79,8 @@ passport.use(new GoogleStrategy({
           role: 'student',
           password: uuidv4(), // random string as password
           isActive: true,
+          googleId: profile.id,
+          profilePicture: profile.photos[0].value,
         });
 
         // Save the new user to the database
@@ -162,11 +164,13 @@ passport.use(new GitHubStrategy({
       } else {
         const name = profile.displayName ? profile.displayName.split(" ") : ["", ""];
         const newUser = new User({
-          firstName: name[0],
+
+          firstName: name[0] || '',
           lastName: name[1] || '',
           email,
           role: 'student',
           githubId: profile.id,
+
         });
 
         const savedUser = await newUser.save();
