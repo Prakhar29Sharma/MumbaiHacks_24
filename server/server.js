@@ -14,6 +14,7 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const GitHubStrategy = require('passport-github2').Strategy;
 const passport = require('passport');
 const User = require('./models/User');
+const {Course, Page} = require('./models/Course');
 
 /* Config */
 const app = express();
@@ -188,11 +189,11 @@ passport.use(new GitHubStrategy({
 
 /* File Storage */
 const s3 = new S3Client({
-    endpoint: process.env.DO_SPACES_ENDPOINT,
-    region: process.env.DO_SPACES_REGION,
+    endpoint: "https://edulib-files.nyc3.digitaloceanspaces.com",
+    region: "us-east-1",
     credentials: {
-        accessKeyId: process.env.DO_SPACES_KEY,
-        secretAccessKey: process.env.DO_SPACES_SECRET,
+        accessKeyId: "DO00Y7CRZEXAV7MNX8Y2",
+        secretAccessKey: "Vbv46nAsL3gh/S2z2F9en++KY7V+OFramzTC4AXf0Yw",
     },
     forcePathStyle: true,
 });
@@ -201,7 +202,7 @@ const s3 = new S3Client({
 const upload = multer({
     storage: multerS3({
         s3: s3,
-        bucket: process.env.DO_SPACES_BUCKET,
+        bucket: "edulib-files",
         acl: 'public-read',
         metadata: function (req, file, cb) {
             cb(null, { fieldName: file.fieldname });
@@ -226,27 +227,68 @@ const upload = multer({
 const fileUploadMiddleware = upload.fields([{ name: 'courseVideo', maxCount: 1 }, { name: 'coursePDFs', maxCount: 8 }]);
 
 // auth middleware needed here
-app.post('/api/course', fileUploadMiddleware, async (req, res) => {
-    try {
-        console.log("file upload request recieved")
+app.post('/api/page/:courseId', fileUploadMiddleware, async (req, res) => {
+  try {
+      const { courseId } = req.params;
+
+      const course = await Course.findById(courseId);
+
+      if (!course) {
+        throw 'Course not found!';
+      } else {
+        console.log("file upload request received");
+
+        // Initialize pdf_paths as an empty array
+        let pdf_paths = [];
+
         // Access the uploaded video 
         if (req.files.courseVideo) {
-            await setTimeout(() => console.log("Recieved a video"), 2000);
+            await setTimeout(() => console.log("Received a video"), 2000);
             const videoFile = req.files.courseVideo[0];
-            console.log("Video file path : " + videoFile);
+            console.log("Video file path : " + videoFile.path);
         }
+
         if (req.files.coursePDFs) {
-            await setTimeout(() => console.log("Recieved PDF documents"), 2000);
+            await setTimeout(() => console.log("Received PDF documents"), 2000);
             const pdf_files = req.files.coursePDFs;
-            const pdf_paths = pdf_files.map((file) => file.path);
+            pdf_paths = pdf_files.map((file) => file.location);
             console.log("PDF files path : " + pdf_paths);
         }
+
+        const { title, textContent, youtubeUrl } = req.body;
+
+        const page = new Page({ title, textContent, pdfPaths: pdf_paths, youtubeUrl });
+
+        course.pages.push(page);
+
+        await course.save();
+
         res.status(200).json({
-            message: 'upload success! course content successfully uploaded to s3 bucket',
+          status: 'ok',
+          message: 'Page added successfully',
         });
-    } catch (err) {
-        console.error(err);
-    }
+      }
+  } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message || err });
+  }
+});
+
+app.post('/api/course', async (req, res) => {
+  try {
+    console.log(req.body);
+    const course = new Course(req.body);
+    await course.save();
+    res.status(200).json({
+      status: 'ok',
+      message: 'Course created successfully'
+    });
+  } catch (err) {
+    res.status(500).json({
+      status: 'error',
+      error: err,
+    })
+  }
 });
 
 /* upload profile image route for student */
@@ -291,7 +333,7 @@ mongoose.connect(process.env.ATLAS_URI, {
 .then(() => {
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
-    }); 
+    });
 })
 .catch((err) => {
     console.error(`Error: ${err}`);

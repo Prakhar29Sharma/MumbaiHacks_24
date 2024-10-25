@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const PageSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+  },
   textContent: {
     type: String,
     required: true,
@@ -26,11 +30,11 @@ const CourseSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  desc: {
+  description: {
     type: String,
     required: true,
   },
-  pages: [PageSchema]  // Embedding the PageSchema as an array in CourseSchema
+  pages: [PageSchema],
 });
 
 // Create the models
