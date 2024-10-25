@@ -69,6 +69,8 @@ passport.use(new GoogleStrategy({
           role: 'student',
           password: uuidv4(), // random string as password
           isActive: true,
+          googleId: profile.id,
+          profilePicture: profile.photos[0].value,
         });
 
         // Save the new user to the database
@@ -108,7 +110,7 @@ passport.use(new GitHubStrategy({
           lastName: name[1] || '',   // Use empty string if lastName is undefined
           email: profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null,
           role: 'student',            // Assigning role as student
-          githubId: profile.id        // Store the GitHub ID
+          githubId: profile.id,        // Store the GitHub ID
         });
 
         // Save the new user to the database
