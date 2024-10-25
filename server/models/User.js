@@ -28,9 +28,18 @@ const userSchema = new mongoose.Schema({
         },
     },
     password: {
+        // type: String,
+        // required: true,
+        // minlength: 3,
         type: String,
-        required: true,
         minlength: 3,
+        validate: {
+            validator: function (value) {
+                // Require password only if GitHub ID is not present
+                return this.githubId || value; 
+            },
+            message: 'Password is required for non-GitHub users',
+        },
     },
     role: {
         type: String,
