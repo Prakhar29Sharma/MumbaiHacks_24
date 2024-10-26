@@ -9,7 +9,7 @@ import Home from './views/Home';
 import Login from './views/Student/Login';
 import Register from './views/Student/Register';
 import AdminComp from './components/AdminComp';
-import TranslationComponent from './components/TranslationComponent';
+
 function App() {
 
   const router = createBrowserRouter([
@@ -21,7 +21,6 @@ function App() {
         { path: '/', element: <Home/> },
         { path: 'login', element: <Login /> },
         { path: 'register', element: <Register /> },
-        { path: 'translation', element:<TranslationComponent />}
       ],
     },
     {

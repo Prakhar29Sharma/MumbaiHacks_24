@@ -8,6 +8,8 @@ const AdminComp = () => {
   const [entries, setEntries] = useState([]);
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [quill, setQuill] = useState(null); // State to hold Quill instance
+  const [title, setTitle] = useState(""); // State for Title
+  const [description, setDescription] = useState(""); // State for Description
 
   const showPopup = () => {
     setIsModalOpen(true);
@@ -42,6 +44,41 @@ const AdminComp = () => {
     event.target.reset();
   };
 
+  const createCourse = async () => {
+    if (!title || !description) {
+      alert("Title and Description are required!");
+      return; // Exit if title or description is missing
+    }
+    
+    // Create course object
+    const courseData = {
+      title: title,
+      description: description
+    };
+
+    try {
+      const response = await fetch("http://localhost:5000/api/course", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(courseData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create course");
+      }
+
+      const data = await response.json();
+      console.log("Course created successfully:", data);
+      // Optionally, you can reset title and description here if needed
+      setTitle("");
+      setDescription("");
+    } catch (error) {
+      console.error("Error creating course:", error);
+    }
+  };
+
   const showEntryDetails = (entry) => {
     setSelectedEntry(entry);
     setIsEntryModalOpen(true);
@@ -65,6 +102,8 @@ const AdminComp = () => {
           <label className="text-right text-gray-600 w-1/3 mr-4">Title</label>
           <input
             type="text"
+            value={title} // Bind title state
+            onChange={(e) => setTitle(e.target.value)} // Update title state
             placeholder="Enter the title"
             required
             className="flex-grow p-2 border-b-2 focus:border-gray-800 outline-none"
@@ -72,15 +111,29 @@ const AdminComp = () => {
         </div>
 
         <div className="flex items-center justify-center">
-          <label className="text-right text-gray-600 w-1/3 mr-4">Password</label>
+          <label className="text-right text-gray-600 w-1/3 mr-4">Description</label>
           <input
             type="text"
+            value={description} // Bind description state
+            onChange={(e) => setDescription(e.target.value)} // Update description state
             placeholder="Enter the description"
             required
             className="flex-grow p-2 border-b-2 focus:border-gray-800 outline-none"
           />
         </div>
 
+        {/* Create Course Button */}
+        <div className="flex justify-end">
+          <button
+            type="button" // Change to type button
+            onClick={createCourse} // Call createCourse on click
+            className="bg-blue-600 text-white p-3 rounded-md hover:bg-blue-500 transition w-full max-w-xs mb-4" // Added margin-bottom for spacing
+          >
+            Create Course
+          </button>
+        </div>
+
+        {/* Add Pages Button */}
         <div className="flex justify-end">
           <button
             type="button"
