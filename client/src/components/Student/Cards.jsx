@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import ProgressBar from './ProgressBar';
+import { Link } from 'react-router-dom';
 
-const Cards = () => {
-  const [menuVisible, setMenuVisible] = useState(false);
+const Cards = (props) => {
+  // const [menuVisible, setMenuVisible] = useState(false);
 
-  const toggleMenu = () => {
-    setMenuVisible(!menuVisible);
-  };
+  // const toggleMenu = () => {
+  //   setMenuVisible(!menuVisible);
+  // };
 
   return (
-    <div class="bg-white shadow-[0_4px_12px_-5px_rgba(0,0,0,0.4)] w-full py-4 max-w-xs rounded-lg font-[sans-serif] overflow-hidden mx-auto mt-4">
+    <div class="bg-white shadow-[0_4px_12px_-5px_rgba(0,0,0,0.4)] w-full py-4 max-w-md rounded-lg font-[sans-serif] overflow-hidden mx-auto mt-4">
       <div class="flex items-center gap-2 px-4">
-        <h3 class="text-lg text-gray-800 font-bold flex-1">Data structures and algorithms</h3>
+        <h3 class="text-lg text-gray-800 font-bold flex-1">{props.course.title}</h3>
         <svg xmlns="http://www.w3.org/2000/svg" width="16px" class="cursor-pointer fill-blue-600 shrink-0"
           viewBox="0 0 64 64">
           <path
@@ -20,12 +21,12 @@ const Cards = () => {
         </svg>
       </div>
 
-      <div class="min-h-[80px]">
-        <img src="https://readymadeui.com/cardImg.webp" class="w-full my-2 h-[80px] object-cover" />
+      <div class="min-h-[80px] ">
+        <img src={props.course.courseImage ? props.course.courseImage : '#'} class="w-full my-2 h-[80px] object-cover" />
       </div>
 
       <div class="px-4">
-        <p class="text-sm text-gray-600 leading-relaxed">{LinkedList}</p>
+        <p class="text-sm text-gray-600 leading-relaxed mt-5">{props.course.description}</p>
 
         {/* Progress bar */}
         <div>
@@ -33,11 +34,8 @@ const Cards = () => {
         </div>
 
         <div class="mt-4 grid-cols-2 flex items-center flex-wrap gap-2">
-          <button type="button"
-            class="px-4 py-2 rounded-lg text-white text-sm tracking-wider bg-black hover:bg-black outline-black">Completed</button>
-
-          <button type="button"
-            class="px-4 py-2 rounded-lg text-black text-sm tracking-wider bg-blue-100 hover:bg-blue-100 outline-black border-spacing-1">Continue</button>
+          <Link to={"/student/course/DSA"} type="button"
+            class="px-4 py-2 rounded-lg text-black text-sm tracking-wider bg-blue-100 hover:bg-blue-100 outline-black border-spacing-1">Enroll</Link>
         </div>
         
       </div>

@@ -8,6 +8,9 @@ import NotFound from './views/NotFound';
 import Home from './views/Home';
 import Login from './views/Student/Login';
 import Register from './views/Student/Register';
+import Student from './views/Student/Student';
+import DSA_Course from './views/DSA_Course';
+import StudentNavbar from './components/Student/Navbar';
 
 function App() {
 
@@ -23,6 +26,14 @@ function App() {
       ],
     },
     {
+      path: '/student',
+      element: <StudentNavbar/>,
+      children: [
+        { path: "", element: <Student /> },
+        { path: "course/DSA", element: <DSA_Course/>}
+      ]
+    }
+  ]);
 
   return <RouterProvider router={router} />
 }

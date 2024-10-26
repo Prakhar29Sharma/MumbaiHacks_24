@@ -15,6 +15,9 @@ const GitHubStrategy = require('passport-github2').Strategy;
 const passport = require('passport');
 const User = require('./models/User');
 const {Course, Page} = require('./models/Course');
+const CourseRoute = require('./routes/course');
+const GroqRouter = require('./routes/groq');
+const TranscriptRoute = require('./routes/transcript');
 
 /* Config */
 const app = express();
@@ -104,35 +107,6 @@ passport.use(new GitHubStrategy({
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
     callbackURL: "http://localhost:5000/auth/github/callback"
   },
-  // async function(accessToken, refreshToken, profile, done) {
-  //   try {
-  //     // Check if the user already exists in the database
-  //     const existingUser = await User.findOne({ email: profile.emails[0].value });
-
-  //     if (existingUser) {
-  //       // If the user already exists, pass the existing user to the callback
-  //       return done(null, existingUser);
-  //     } else {
-  //       // If the user doesn't exist, create a new user
-  //       const name = profile.displayName.split(" "); // Assuming the full name is returned
-
-  //       const newUser = new User({
-  //         firstName: name[0] || '',  // Use empty string if firstName is undefined
-  //         lastName: name[1] || '',   // Use empty string if lastName is undefined
-  //         email: profile.emails && profile.emails.length > 0 ? profile.emails[0].value : null,
-  //         role: 'student',            // Assigning role as student
-  //         githubId: profile.id        // Store the GitHub ID
-  //       });
-
-  //       // Save the new user to the database
-  //       const savedUser = await newUser.save();
-  //       return done(null, savedUser);
-  //     }
-  //   } catch (err) {
-  //     console.error('Error during GitHub authentication:', err);
-  //     return done(err);
-  //   }
-  // }
   async function(accessToken, refreshToken, profile, done) {
     try {
       let email;
@@ -189,11 +163,11 @@ passport.use(new GitHubStrategy({
 
 /* File Storage */
 const s3 = new S3Client({
-    endpoint: "https://edulib-files.nyc3.digitaloceanspaces.com",
+    endpoint: "endpoint",
     region: "us-east-1",
     credentials: {
-        accessKeyId: "DO00Y7CRZEXAV7MNX8Y2",
-        secretAccessKey: "Vbv46nAsL3gh/S2z2F9en++KY7V+OFramzTC4AXf0Yw",
+        accessKeyId: "access-key",
+        secretAccessKey: "secret",
     },
     forcePathStyle: true,
 });
@@ -224,7 +198,7 @@ const upload = multer({
 });
 
 /* ROUTES WITH FILE UPLOAD */
-const fileUploadMiddleware = upload.fields([{ name: 'courseVideo', maxCount: 1 }, { name: 'coursePDFs', maxCount: 8 }]);
+const fileUploadMiddleware = upload.fields([{ name: 'courseVideo', maxCount: 1 }, { name: 'coursePDFs', maxCount: 8 }, { name: 'courseImage', maxCount: 1 }]);
 
 // auth middleware needed here
 app.post('/api/page/:courseId', fileUploadMiddleware, async (req, res) => {
@@ -274,10 +248,16 @@ app.post('/api/page/:courseId', fileUploadMiddleware, async (req, res) => {
   }
 });
 
-app.post('/api/course', async (req, res) => {
+app.post('/api/course', fileUploadMiddleware, async (req, res) => {
   try {
     console.log(req.body);
-    const course = new Course(req.body);
+    let course = new Course(req.body);
+    if (req.files.courseImage) {
+      await setTimeout(() => console.log("Received a thumbnail"), 2000);
+      const courseImage = req.files.courseImage[0];
+      console.log("Image file path : " + courseImage.location);
+    }
+    // course.courseImage = courseImage.location;
     await course.save();
     res.status(200).json({
       status: 'ok',
@@ -324,6 +304,9 @@ app.get('/auth/github',
 
 /* API ROUTES */
 app.use('/api/auth', AuthRoute);
+app.use('/api/course', CourseRoute);
+app.use('/chat', GroqRouter);
+app.use('/transcript', TranscriptRoute);
 
 const PORT = process.env.PORT || 5000;
 

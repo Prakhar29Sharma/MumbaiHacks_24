@@ -22,6 +22,10 @@ const PageSchema = new mongoose.Schema({
       message: 'Invalid YouTube URL',
     },
   },
+  courseImage: {
+    type: String,
+    required: true,
+  }
 });
 
 // Define the Course Schema

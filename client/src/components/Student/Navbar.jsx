@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Outlet } from "react-router-dom";
 
 const Navbar = () => {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -8,6 +9,7 @@ const Navbar = () => {
   };
 
   return (
+    <>
     <header className="bg-white shadow-md font-[sans-serif]">
       <div className="flex items-center justify-between p-4 sm:px-6 lg:px-8">
         {/* Logo and Hamburger Icon */}
@@ -95,6 +97,8 @@ const Navbar = () => {
         </div>
       )}
     </header>
+    <Outlet />
+    </>
   );
 };
 
